@@ -1,0 +1,45 @@
+1. You removed an implementation where user was asked to update the app, therefore auto-update was turned off
+2. You removed the original single correct choice question, which had to be present and additionally Multiple choice correct questions and numerical value type questions had to be present
+3. Users can still enter invalid decimal values, add proper formatting so that user can enter a valid number only maximum upto 2 decimal places
+4. marking scheme for multiple choice questions is incorrect
+skipped: 0
+incorrect: -2
+partially correct
+correct: 
+
+a) if the user skips the question, then 0 is awarded (question is marked 'skipped')
+b) if all the options of the user are correct, no option selected by the user is incorrect nor any correct option is left to be selected by the user, then +4 is awarded (question is marked 'answered')
+eg. 1
+correct option set : {A, B, C}
+user option set: {A, C, B}
+marks rewarded: 4
+eg. 2
+correct option set : {A, B, C}
+user option set: {A, B}
+marks rewarded: it is not 4
+eg. 3
+correct option set : {B, C}
+user option set: {A, C, B}
+marks rewarded: it is not 4
+c) if all the options of the users are correct, but all the correct options are not selected, then he will be awarded number of options * 1
+eg. 1
+correct option set : {A, B, C}
+user option set: {A, C}
+marks rewarded: 2*1
+eg. 2
+correct option set : {A, B, C}
+user option set: {A, C, B}
+marks rewarded: 4 (this is not case c, this is case b)
+eg. 3. 
+correct option set : {A, B, C}
+user option set: {A, D, B}
+marks rewarded: this is neither 3*1 nor +4
+d) if any of the options selected by the user is incorrect, even though he has selected some correct options, at the end, he would be awarded only -2
+eg. 1.
+correct option set : {A, B, C}
+user option set: {A, C, B}
+marks rewarded: -2
+eg. 2
+correct option set : {A, B, C}
+user option set: {A, B}
+marks rewarded: this gets 2*1
