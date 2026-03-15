@@ -73,76 +73,51 @@ class _AnalysisListScreenState extends State<AnalysisListScreen> {
               padding: const EdgeInsets.all(20),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(Icons.filter_list_outlined, color: Theme.of(context).colorScheme.primary, size: 20),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Filters',
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          DropdownButtonFormField<int?>(
-                            initialValue: _filterSubjectId,
-                            decoration: InputDecoration(
-                              hintText: 'All subjects',
-                              prefixIcon: const Icon(Icons.book_outlined),
-                            ),
-                            isExpanded: true,
-                            items: [
-                              const DropdownMenuItem(value: null, child: Text('All subjects')),
-                              ..._subjects.map(
-                                (s) => DropdownMenuItem(
-                                  value: s.id,
-                                  child: SizedBox(
-                                    width: double.infinity,
-                                    child: Text(
-                                      s.displayName, 
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 1,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                            onChanged: (v) {
-                              setState(() => _filterSubjectId = v);
-                              _load();
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 50,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: FilterChip(
+                            label: const Text('All Subjects'),
+                            selected: _filterSubjectId == null,
+                            onSelected: (selected) {
+                              if (selected) {
+                                setState(() => _filterSubjectId = null);
+                                _load();
+                              }
                             },
-                          ),
-                          const SizedBox(height: 12),
-                          TextField(
-                            decoration: InputDecoration(
-                              hintText: 'Filter by source...',
-                              prefixIcon: const Icon(Icons.source_outlined),
-                              suffixIcon: _filterSource.isNotEmpty
-                                  ? IconButton(
-                                      onPressed: () {
-                                        setState(() => _filterSource = '');
-                                        _load();
-                                      },
-                                      icon: const Icon(Icons.clear_outlined),
-                                    )
-                                  : null,
+                            selectedColor: Theme.of(context).colorScheme.primary,
+                            checkmarkColor: Theme.of(context).colorScheme.onPrimary,
+                            labelStyle: TextStyle(
+                              color: _filterSubjectId == null ? Theme.of(context).colorScheme.onPrimary : null,
                             ),
-                            textCapitalization: TextCapitalization.words,
-                            controller: TextEditingController(text: _filterSource)
-                              ..selection = TextSelection.fromPosition(TextPosition(offset: _filterSource.length)),
-                            onSubmitted: (v) {
-                              setState(() => _filterSource = v.trim());
-                              _load();
-                            },
                           ),
-                        ],
-                      ),
+                        ),
+                        ..._subjects.map((s) {
+                          final isSelected = _filterSubjectId == s.id;
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: FilterChip(
+                              label: Text(s.displayName),
+                              selected: isSelected,
+                              onSelected: (selected) {
+                                setState(() => _filterSubjectId = selected ? s.id : null);
+                                _load();
+                              },
+                              selectedColor: Theme.of(context).colorScheme.primary,
+                              checkmarkColor: Theme.of(context).colorScheme.onPrimary,
+                              labelStyle: TextStyle(
+                                color: isSelected ? Theme.of(context).colorScheme.onPrimary : null,
+                              ),
+                            ),
+                          );
+                        }),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -228,99 +203,75 @@ class _SessionCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
+      color: Theme.of(context).colorScheme.surfaceContainerLowest,
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      subjectDisplayName?.split(' · ').first ?? 'Session',
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                  ),
-                  const Spacer(),
-                  Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.outline),
-                ],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 8,
+          runSpacing: 4,
+          children: [
+            Text(
+              subjectDisplayName?.split(' · ').first ?? 'Session',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            Text(
+              '${stats.totalMarks} marks',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: stats.totalMarks >= 0 ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.error,
               ),
-              const SizedBox(height: 8),
-              if (subjectDisplayName?.contains(' · ') == true)
-                Text(
-                  subjectDisplayName!.split(' · ').last,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(Icons.source_outlined, size: 16, color: Theme.of(context).colorScheme.outline),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      session.source,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Icon(Icons.schedule_outlined, size: 16, color: Theme.of(context).colorScheme.outline),
-                  const SizedBox(width: 4),
-                  Text(
-                    dateStr,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.outline),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Icon(
-                    Icons.workspace_premium,
-                    size: 16,
-                    color: stats.totalMarks >= 0
-                        ? Theme.of(context).colorScheme.primary
-                        : Theme.of(context).colorScheme.error,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${stats.totalMarks} marks',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: stats.totalMarks >= 0
-                          ? Theme.of(context).colorScheme.primary
-                          : Theme.of(context).colorScheme.error,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (subjectDisplayName?.contains(' · ') == true)
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Text(
+                  subjectDisplayName!.split(' · ').last,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 12,
+              runSpacing: 4,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.source_outlined, size: 14, color: Theme.of(context).colorScheme.outline),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        session.source,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.schedule_outlined, size: 14, color: Theme.of(context).colorScheme.outline),
+                    const SizedBox(width: 4),
+                    Text(
+                      dateStr,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.outline),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+        trailing: Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.outline),
       ),
     );
   }

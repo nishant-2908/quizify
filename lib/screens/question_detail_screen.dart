@@ -15,15 +15,15 @@ class QuestionDetailScreen extends StatelessWidget {
     final skipped = question.wasSkipped;
 
     Color getStatusColor(bool skipped, bool correct) {
-      if (skipped) return Theme.of(context).colorScheme.outline;
-      if (partial) return Theme.of(context).colorScheme.tertiary;
-      return correct ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.error;
+      if (skipped) return Colors.grey;
+      if (partial) return Colors.orange;
+      return correct ? Colors.green : Colors.red;
     }
 
     Color getMarksColor(bool skipped, bool correct) {
-      if (skipped) return Theme.of(context).colorScheme.outline;
-      if (question.marks > 0) return Theme.of(context).colorScheme.primary;
-      return correct ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.error;
+      if (skipped) return Colors.grey;
+      if (question.marks > 0) return Colors.green;
+      return correct ? Colors.green : Colors.red;
     }
 
     String getStatusText(bool skipped, bool correct) {
@@ -40,8 +40,8 @@ class QuestionDetailScreen extends StatelessWidget {
 
     IconData getStatusIcon(bool skipped, bool correct) {
       if (skipped) return Icons.skip_next_outlined;
-      if (partial) return Icons.check_circle_outline;
-      return correct ? Icons.check_circle_outline : Icons.cancel_outlined;
+      if (partial) return Icons.fact_check_outlined;
+      return correct ? Icons.check_circle_outlined : Icons.cancel_outlined;
     }
 
     return Scaffold(
@@ -52,9 +52,7 @@ class QuestionDetailScreen extends StatelessWidget {
               floating: true,
               title: Text(
                 'Question ${question.questionNumber}',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+                style: Theme.of(context).textTheme.headlineMedium,
               ),
               centerTitle: true,
               backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -65,6 +63,7 @@ class QuestionDetailScreen extends StatelessWidget {
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   Card(
+                    color: Theme.of(context).colorScheme.surfaceContainerLow,
                     child: Padding(
                       padding: const EdgeInsets.all(20),
                       child: Column(
@@ -74,19 +73,27 @@ class QuestionDetailScreen extends StatelessWidget {
                             label: 'Time spent',
                             value: formatDurationSeconds(question.timeSpent),
                           ),
-                          const Divider(),
+                          Divider(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
                           _DetailRow(
                             icon: Icons.person_outline,
                             label: 'Your answer',
                             value: question.selectedOption ?? '— (skipped)',
                             isUserAnswer: true,
                           ),
-                          const Divider(),
+                          Divider(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
+                          _DetailRow(
+                            icon: getStatusIcon(skipped, correct),
+                            label: 'Status',
+                            value: getStatusText(skipped, correct),
+                            statusColor: getStatusColor(skipped, correct),
+                          ),
+                          Divider(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
                           _DetailRow(
                             icon: Icons.check_circle_outline,
                             label: 'Correct answer',
                             value: question.correctOption ?? '—',
                             isCorrectAnswer: true,
+                            statusColor: Colors.green,
                           ),
                         ],
                       ),
@@ -94,6 +101,7 @@ class QuestionDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Card(
+                    color: Theme.of(context).colorScheme.surfaceContainerLow,
                     child: Padding(
                       padding: const EdgeInsets.all(20),
                       child: Row(
@@ -101,15 +109,26 @@ class QuestionDetailScreen extends StatelessWidget {
                           Icon(
                             getStatusIcon(skipped, correct),
                             color: getStatusColor(skipped, correct),
-                            size: 24,
+                            size: 28,
                           ),
-                          const SizedBox(width: 12),
-                          Text(
-                            getStatusText(skipped, correct),
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: getStatusColor(skipped, correct),
-                              fontWeight: FontWeight.w600,
-                            ),
+                          const SizedBox(width: 16),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                getStatusText(skipped, correct),
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: getStatusColor(skipped, correct),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                'Performance status',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Theme.of(context).colorScheme.outline,
+                                ),
+                              ),
+                            ],
                           ),
                           const Spacer(),
                           Container(
@@ -119,10 +138,10 @@ class QuestionDetailScreen extends StatelessWidget {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
-                              getStatusText(skipped, correct),
+                              getMarksText(skipped, correct),
                               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                                 color: getStatusColor(skipped, correct),
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
@@ -132,6 +151,7 @@ class QuestionDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Card(
+                    color: Theme.of(context).colorScheme.surfaceContainerLow,
                     child: Padding(
                       padding: const EdgeInsets.all(20),
                       child: Column(
@@ -141,7 +161,7 @@ class QuestionDetailScreen extends StatelessWidget {
                             label: 'Marks for this question',
                             value: getMarksText(skipped, correct),
                             isMarksRow: true,
-                            marksColor: getMarksColor(skipped, correct),
+                            statusColor: getMarksColor(skipped, correct),
                           ),
                         ],
                       ),
@@ -165,7 +185,7 @@ class _DetailRow extends StatelessWidget {
   final bool isUserAnswer;
   final bool isCorrectAnswer;
   final bool isMarksRow;
-  final Color? marksColor;
+  final Color? statusColor;
 
   const _DetailRow({
     required this.icon,
@@ -174,7 +194,7 @@ class _DetailRow extends StatelessWidget {
     this.isUserAnswer = false,
     this.isCorrectAnswer = false,
     this.isMarksRow = false,
-    this.marksColor,
+    this.statusColor,
   });
 
   @override
@@ -182,40 +202,42 @@ class _DetailRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(
             icon,
             size: 20,
-            color: isMarksRow
-                ? (marksColor ?? Theme.of(context).colorScheme.outline)
-                : isUserAnswer
+            color: statusColor ??
+                (isUserAnswer || isCorrectAnswer
                     ? Theme.of(context).colorScheme.primary
-                    : isCorrectAnswer
-                        ? Theme.of(context).colorScheme.primary
-                        : Theme.of(context).colorScheme.outline,
+                    : Theme.of(context).colorScheme.outline),
           ),
           const SizedBox(width: 12),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              fontWeight: FontWeight.w500,
+          Expanded(
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                Text(
+                  label,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Text(
+                  value,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontWeight: isUserAnswer || isCorrectAnswer || isMarksRow ? FontWeight.w600 : FontWeight.normal,
+                    color: statusColor ??
+                        (isUserAnswer || isCorrectAnswer
+                            ? Theme.of(context).colorScheme.primary
+                            : null),
+                  ),
+                ),
+              ],
             ),
-          ),
-          const Spacer(),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              fontWeight: isUserAnswer || isCorrectAnswer || isMarksRow ? FontWeight.w600 : FontWeight.normal,
-              color: isMarksRow
-                  ? (marksColor ?? Theme.of(context).colorScheme.outline)
-                  : isUserAnswer
-                      ? Theme.of(context).colorScheme.primary
-                      : isCorrectAnswer
-                          ? Theme.of(context).colorScheme.primary
-                          : null,
-            ),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 2,
           ),
         ],
       ),

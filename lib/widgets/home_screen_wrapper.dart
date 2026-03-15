@@ -43,41 +43,11 @@ class _HomeScreenWrapperState extends State<HomeScreenWrapper> {
   }
 
   Future<void> _showUpdateDialog() async {
-    final shouldRestart = await showDialog<bool>(
+    await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (context) => const UpdateDialog(),
     );
-
-    if (shouldRestart == true && mounted) {
-      // Show a simple restart dialog
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => AlertDialog(
-          title: const Text('Restart Required'),
-          content: const Text(
-            'The app needs to restart to apply the update. The app will now close.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                // In a real app, you might want to use a package like flutter_restart
-                // For now, we'll just show a message
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Please manually restart the app to apply updates.'),
-                    duration: Duration(seconds: 5),
-                  ),
-                );
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
-    }
   }
 
   @override

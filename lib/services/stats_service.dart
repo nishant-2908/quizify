@@ -23,6 +23,7 @@ class SessionStats {
   final int totalQuestions;
   final int skipped;
   final int incorrect;
+  final int partial;
   final int correct;
   final int totalMarks;
 
@@ -34,6 +35,7 @@ class SessionStats {
     required this.totalQuestions,
     required this.skipped,
     required this.incorrect,
+    required this.partial,
     required this.correct,
     required this.totalMarks,
   });
@@ -79,6 +81,7 @@ Future<SessionStats> getSessionStats(Session session) async {
   final questions = await AppDatabase.getQuestionsBySessionId(session.id);
   final total = questions.length;
   int correct = 0;
+  int partial = 0;
   int incorrect = 0;
   int skipped = 0;
   int totalTime = 0;
@@ -91,6 +94,8 @@ Future<SessionStats> getSessionStats(Session session) async {
     } else {
       if (q.isCorrect) {
         correct++;
+      } else if (q.isPartiallyCorrect) {
+        partial++;
       } else {
         incorrect++;
       }
@@ -98,7 +103,7 @@ Future<SessionStats> getSessionStats(Session session) async {
     totalMarks += q.marks;
   }
 
-  final attempted = correct + incorrect;
+  final attempted = correct + partial + incorrect;
   final avgTime = total > 0 ? totalTime / total : 0.0;
   final accuracy = attempted > 0 ? (100.0 * correct / attempted) : 0.0;
 
@@ -110,6 +115,7 @@ Future<SessionStats> getSessionStats(Session session) async {
     totalQuestions: total,
     skipped: skipped,
     incorrect: incorrect,
+    partial: partial,
     correct: correct,
     totalMarks: totalMarks,
   );

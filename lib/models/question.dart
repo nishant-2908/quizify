@@ -76,31 +76,38 @@ class QuestionRecord {
     return true;
   }
 
-  /// Marks for this question.
+  /// Marks for this question based on JEE Advanced pattern:
   /// - Numerical: +4 correct, -1 incorrect, 0 skipped.
   /// - Single choice: +4 correct, -1 incorrect, 0 skipped.
-  /// - Multiple correct:
+  /// - Multiple choice (one or more correct):
   ///   a) skipped -> 0
   ///   b) fully correct (selected == correct) -> +4
-  ///   c) partially correct (selected ⊂ correct) -> +1 per selected option
+  ///   c) partially correct (selected ⊂ correct) -> +1 per selected option (max +3)
   ///   d) any wrong selected (selected \ correct != ∅) -> -2
   int get marks {
     if (wasSkipped) return 0;
     if (correctOption == null || correctOption!.isEmpty) return 0;
+
     if (isNumerical) {
       return isCorrect ? 4 : -1;
     }
+
     if (isSingleChoice) {
       return isCorrect ? 4 : -1;
     }
+
+    // Multiple Correct logic
     final correctSet = _parseOptions(correctOption!);
     final selectedSet = _parseOptions(selectedOption!);
     if (selectedSet.isEmpty) return 0;
-    final incorrectSelected = selectedSet.difference(correctSet);
-    if (incorrectSelected.isNotEmpty) return -2;
-    if (selectedSet.length == correctSet.length && correctSet.every(selectedSet.contains)) return 4;
-    // selectedSet is a strict subset of correctSet
-    return selectedSet.length * 1;
+
+    final hasIncorrect = selectedSet.any((o) => !correctSet.contains(o));
+    if (hasIncorrect) return -2;
+
+    if (selectedSet.length == correctSet.length) return 4;
+
+    // Partial marking: +1, +2, or +3 based on number of correct options selected
+    return selectedSet.length;
   }
 
   static Set<String> _parseOptions(String s) {

@@ -1,0 +1,5 @@
+1. restart app package restarts the app but the patch is not applied
+2. marking scheme of single correct type question and numerical value type question is +4 for correct and -1 for incorrect answer
+3. on the session analysis, on the marking scheme card, make the same change
+4. on the question analysis page, no icon is shown for neither for correct, partial or incorrect, icons for time, correct answer, my answer is shown but not for correct, partial or incorrect answer
+5. on the session analysis page, try to make all the cards look the same

@@ -12,6 +12,7 @@ class _UpdateDialogState extends State<UpdateDialog>
     with TickerProviderStateMixin {
   bool _isUpdating = false;
   bool _updateComplete = false;
+  int _countdown = 5;
   String? _errorMessage;
   late AnimationController _pulseController;
   late AnimationController _progressController;
@@ -27,7 +28,7 @@ class _UpdateDialogState extends State<UpdateDialog>
     )..repeat();
     
     _progressController = AnimationController(
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 15),
       vsync: this,
     );
 
@@ -44,7 +45,7 @@ class _UpdateDialogState extends State<UpdateDialog>
       end: 1.0,
     ).animate(CurvedAnimation(
       parent: _progressController,
-      curve: Curves.easeInOut,
+      curve: Curves.easeOut,
     ));
   }
 
@@ -55,33 +56,66 @@ class _UpdateDialogState extends State<UpdateDialog>
     super.dispose();
   }
 
+  String? _retryMessage;
+
   Future<void> _performUpdate() async {
     setState(() {
       _isUpdating = true;
       _errorMessage = null;
+      _retryMessage = null;
     });
 
     _progressController.reset();
-    _progressController.forward();
+    _progressController.animateTo(0.9);
 
-    final result = await UpdateService.performUpdate();
+    final result = await UpdateService.performUpdate(
+      onRetry: (attempt, max, error) {
+        if (mounted) {
+          setState(() {
+            _retryMessage = 'Retrying... Attempt $attempt of $max\n$error';
+          });
+        }
+      },
+    );
 
     if (!mounted) return;
 
     if (result.success) {
-      await _progressController.forward();
+      await _progressController.animateTo(1.0, duration: const Duration(milliseconds: 500));
       setState(() {
         _updateComplete = true;
         _isUpdating = false;
         _errorMessage = null;
+        _retryMessage = null;
       });
+      _startCountdown();
     } else {
+      _progressController.stop();
       setState(() {
         _errorMessage = result.errorMessage ?? 'Update failed. Please try again later.';
         _isUpdating = false;
+        _retryMessage = null;
       });
-      _progressController.reset();
     }
+  }
+
+  void _startCountdown() {
+    Future.doWhile(() async {
+      await Future.delayed(const Duration(seconds: 1));
+      if (!mounted) return false;
+      setState(() {
+        _countdown--;
+      });
+      if (_countdown <= 0) {
+        _restartApp();
+        return false;
+      }
+      return true;
+    });
+  }
+
+  Future<void> _restartApp() async {
+    await UpdateService.restartApp();
   }
 
   @override
@@ -163,7 +197,7 @@ class _UpdateDialogState extends State<UpdateDialog>
             // Description
             Text(
               _updateComplete 
-                ? 'The update has been downloaded successfully. Please restart the app to apply the changes.'
+                ? 'The update has been downloaded successfully. App will restart automatically in $_countdown seconds...'
                 : _isUpdating 
                   ? 'Downloading the latest update. This may take a few moments...'
                   : 'A new version of Quizify is available with improvements and bug fixes.',
@@ -172,6 +206,18 @@ class _UpdateDialogState extends State<UpdateDialog>
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
               ),
             ),
+
+            if (_retryMessage != null && _isUpdating) ...[
+              const SizedBox(height: 12),
+              Text(
+                _retryMessage!,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.secondary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
             
             if (_errorMessage != null) ...[
               const SizedBox(height: 16),
@@ -253,7 +299,7 @@ class _UpdateDialogState extends State<UpdateDialog>
                   const SizedBox(width: 12),
                   Expanded(
                     child: FilledButton(
-                      onPressed: () => Navigator.of(context).pop(true),
+                      onPressed: _restartApp,
                       child: const Text('Restart Now'),
                     ),
                   ),

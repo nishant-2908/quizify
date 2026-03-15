@@ -423,14 +423,6 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> with WidgetsB
     _questionTimer?.cancel();
     List<QuestionState> list = List.from(_questions);
     
-    // Remove the last auto-added empty question if it exists
-    if (list.isNotEmpty) {
-      final last = list.last;
-      if (last.selectedOption == null || last.selectedOption!.isEmpty) {
-        list.removeLast();
-      }
-    }
-    
     if (list.isEmpty) {
       if (mounted) Navigator.of(context).pop();
       return;
@@ -667,16 +659,12 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> with WidgetsB
                     const SizedBox(height: 12),
                     SizedBox(
                       width: double.infinity,
-                      child: FilledButton.icon(
+                      child: TextButton.icon(
                         onPressed: _endSession,
-                        icon: const Icon(Icons.stop_circle_outlined, size: 20),
-                        label: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: const Text('End Session', maxLines: 1, overflow: TextOverflow.ellipsis),
-                        ),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: Theme.of(context).colorScheme.errorContainer,
-                          foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
+                        icon: Icon(Icons.stop_circle_outlined, size: 20, color: Theme.of(context).colorScheme.error),
+                        label: Text(
+                          'End Session',
+                          style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w600),
                         ),
                       ),
                     ),

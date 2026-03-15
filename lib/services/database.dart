@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -18,28 +16,14 @@ class AppDatabase {
   }
 
   static Future<Database> _init() async {
-    if (Platform.isWindows || Platform.isLinux) {
-      sqfliteFfiInit();
-      databaseFactory = databaseFactoryFfi;
-    }
-    final dbPath = join(
-      (await getApplicationDocumentsDirectory()).path,
-      'timer_app.db',
-    );
-    final db = await openDatabase(
-      dbPath,
-      version: 2,
-      onCreate: _onCreate,
-      onUpgrade: _onUpgrade,
-    );
+    final dbPath = join((await getApplicationDocumentsDirectory()).path, 'timer_app.db');
+    final db = await openDatabase(dbPath, version: 2, onCreate: _onCreate, onUpgrade: _onUpgrade);
     return db;
   }
 
   static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
-      await db.execute(
-        "ALTER TABLE questions ADD COLUMN question_type TEXT DEFAULT 'multiple_choice'",
-      );
+      await db.execute("ALTER TABLE questions ADD COLUMN question_type TEXT DEFAULT 'multiple_choice'");
     }
   }
 
@@ -73,10 +57,8 @@ class AppDatabase {
         FOREIGN KEY (session_id) REFERENCES sessions (id)
       )
     ''');
-    await db.execute(
-        'CREATE INDEX idx_questions_session ON questions(session_id)');
-    await db.execute(
-        'CREATE INDEX idx_sessions_subject ON sessions(subject_id)');
+    await db.execute('CREATE INDEX idx_questions_session ON questions(session_id)');
+    await db.execute('CREATE INDEX idx_sessions_subject ON sessions(subject_id)');
   }
 
   // --- Subjects ---
@@ -124,10 +106,7 @@ class AppDatabase {
     return maps.map((m) => Session.fromMap(m)).toList();
   }
 
-  static Future<List<Session>> getSessionsFiltered({
-    int? subjectId,
-    String? source,
-  }) async {
+  static Future<List<Session>> getSessionsFiltered({int? subjectId, String? source}) async {
     final db = await database;
     String? where;
     List<Object?>? args;
@@ -141,12 +120,7 @@ class AppDatabase {
       where = 'source = ?';
       args = [source];
     }
-    final maps = await db.query(
-      'sessions',
-      where: where,
-      whereArgs: args,
-      orderBy: 'datetime DESC',
-    );
+    final maps = await db.query('sessions', where: where, whereArgs: args, orderBy: 'datetime DESC');
     return maps.map((m) => Session.fromMap(m)).toList();
   }
 
@@ -166,22 +140,12 @@ class AppDatabase {
 
   static Future<void> updateQuestion(QuestionRecord q) async {
     final db = await database;
-    await db.update(
-      'questions',
-      q.toMap(),
-      where: 'id = ?',
-      whereArgs: [q.id],
-    );
+    await db.update('questions', q.toMap(), where: 'id = ?', whereArgs: [q.id]);
   }
 
   static Future<void> updateQuestionCorrectOption(int id, String correct) async {
     final db = await database;
-    await db.update(
-      'questions',
-      {'correct_option': correct},
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    await db.update('questions', {'correct_option': correct}, where: 'id = ?', whereArgs: [id]);
   }
 
   static Future<List<QuestionRecord>> getQuestionsBySessionId(int sessionId) async {

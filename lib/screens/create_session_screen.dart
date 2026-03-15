@@ -140,9 +140,9 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
                             const SizedBox(height: 16),
                             DropdownButtonFormField<Subject>(
                               initialValue: _selectedSubject,
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 hintText: 'Select subject & topic',
-                                prefixIcon: const Icon(Icons.library_books_outlined),
+                                prefixIcon: Icon(Icons.library_books_outlined),
                               ),
                               isExpanded: true,
                               items: _subjects
@@ -164,18 +164,18 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
                               const SizedBox(height: 16),
                               TextField(
                                 controller: _newSubjectName,
-                                decoration: InputDecoration(
+                                decoration: const InputDecoration(
                                   labelText: 'Subject name',
-                                  prefixIcon: const Icon(Icons.subject_outlined),
+                                  prefixIcon: Icon(Icons.subject_outlined),
                                 ),
                                 textCapitalization: TextCapitalization.words,
                               ),
                               const SizedBox(height: 12),
                               TextField(
                                 controller: _newTopicName,
-                                decoration: InputDecoration(
+                                decoration: const InputDecoration(
                                   labelText: 'Topic name',
-                                  prefixIcon: const Icon(Icons.topic_outlined),
+                                  prefixIcon: Icon(Icons.topic_outlined),
                                 ),
                                 textCapitalization: TextCapitalization.words,
                               ),
@@ -200,20 +200,18 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
                                 onPressed: () => setState(() => _addingSubject = true),
                                 icon: const Icon(Icons.add_circle_outline),
                                 label: const Text('Add new subject & topic'),
-                                style: OutlinedButton.styleFrom(minimumSize: const Size(double.infinity, 0)),
+                                style: OutlinedButton.styleFrom(
+                                  minimumSize: const Size(double.infinity, 0),
+                                  side: BorderSide(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5)),
+                                ),
                               ),
                             ],
                           ],
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16 * 2),
+                    const SizedBox(height: 16),
                     Card(
-                      elevation: 0, // removes shadow
-                      shape: RoundedRectangleBorder(
-                        side: BorderSide.none,
-                        borderRadius: BorderRadius.circular(12),
-                      ), // removes border
                       child: Padding(
                         padding: const EdgeInsets.all(20),
                         child: Column(
@@ -232,9 +230,9 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
                             const SizedBox(height: 16),
                             TextField(
                               controller: _sourceController,
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 hintText: 'e.g., Textbook Chapter 5, Mock Test 1',
-                                prefixIcon: const Icon(Icons.description_outlined),
+                                prefixIcon: Icon(Icons.description_outlined),
                                 helperText: 'Optional: Specify where questions are from',
                               ),
                               textCapitalization: TextCapitalization.words,
@@ -243,45 +241,50 @@ class _CreateSessionScreenState extends State<CreateSessionScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16 * 2),
-                    FilledButton.icon(
-                      onPressed: _selectedSubject == null
-                          ? null
-                          : () async {
-                              final confirm = await showDialog<bool>(
-                                context: context,
-                                builder: (ctx) => AlertDialog(
-                                  title: const Text('Start Session?'),
-                                  content: const Text(
-                                    'Timer will start from 00:00:00. You can attempt questions and add more as you go.',
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 3,
+                    const SizedBox(height: 32),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: FilledButton.icon(
+                        onPressed: _selectedSubject == null
+                            ? null
+                            : () async {
+                                final confirm = await showDialog<bool>(
+                                  context: context,
+                                  builder: (ctx) => AlertDialog(
+                                    title: const Text('Start Session?'),
+                                    content: const Text(
+                                      'Timer will start from 00:00:00. You can attempt questions and add more as you go.',
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 3,
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.of(ctx).pop(false),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      FilledButton(
+                                        onPressed: () => Navigator.of(ctx).pop(true),
+                                        child: const Text('Start'),
+                                      ),
+                                    ],
                                   ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.of(ctx).pop(false),
-                                      child: const Text('Cancel'),
-                                    ),
-                                    FilledButton(
-                                      onPressed: () => Navigator.of(ctx).pop(true),
-                                      child: const Text('Start'),
-                                    ),
-                                  ],
-                                ),
-                              );
-                              if (confirm == true) _startSession();
-                            },
-                      icon: const Icon(Icons.play_arrow_outlined),
-                      label: const Text('Start Session'),
-                      style: FilledButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        minimumSize: const Size(double.infinity, 0),
+                                );
+                                if (confirm == true) _startSession();
+                              },
+                        icon: const Icon(Icons.play_arrow_outlined, size: 28),
+                        label: const Text('Start Session', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          minimumSize: const Size(double.infinity, 0),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 20),
                   ]),
                 ),
               ),
+
           ],
         ),
       ),
